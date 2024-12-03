@@ -1,0 +1,273 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+
+class Donor implements Comparable<Donor> {
+    private String name;
+    private int age;
+    private String bloodGroup;
+    private String contactNumber;
+    private String lastDonationDate;
+    private String gender;
+    private String dateOfBirth;
+
+    public Donor(String name, int age, String bloodGroup, String contactNumber, String lastDonationDate, String gender, String dateOfBirth) {
+        this.name = name;
+        this.age = age;
+        this.bloodGroup = bloodGroup;
+        this.contactNumber = contactNumber;
+        this.lastDonationDate = lastDonationDate;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int compareTo(Donor other) {
+        return this.name.compareToIgnoreCase(other.name);
+    }
+
+    @Override
+    public String toString() {
+        return "Name: " + name + ", Age: " + age + ", Blood Group: " + bloodGroup +
+                ", Gender: " + gender + ", Contact: " + contactNumber +
+                ", Last Donation: " + lastDonationDate + ", DOB: " + dateOfBirth;
+    }
+}
+
+class BloodBank {
+    private List<Donor> donors = new ArrayList<>();
+
+    public void addDonor(Donor donor) {
+        donors.add(donor);
+        Collections.sort(donors); // Maintain donors in alphabetical order
+    }
+
+    public List<Donor> getDonors() {
+        return donors;
+    }
+}
+
+public class OnlineBloodDonorManagementAWT {
+    private static BloodBank bloodBank = new BloodBank();
+    private static TextArea displayArea;
+    private static TextField nameField, ageField, bloodGroupField, contactField, lastDonationField, dobField;
+    private static CheckboxGroup genderGroup;
+    private static Checkbox maleCheckbox, femaleCheckbox;
+
+    public static void main(String[] args) {
+        displayMainMenu();
+    }
+
+    private static void displayMainMenu() {
+        Frame frame = new Frame("Online Blood Donor Management");
+        frame.setLayout(new GridLayout(6, 1, 10, 10));
+
+        Label menuLabel = new Label("DISPLAY MAIN MENU", Label.CENTER);
+        menuLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        Button registerButton = new Button("1. Register Donor");
+        Button scheduleDonationButton = new Button("2. Schedule Donation");
+        Button displayDonorsButton = new Button("3. Display Donors");
+        Button displayInventoryButton = new Button("4. Display Blood Inventory");
+        Button exitButton = new Button("5. Exit");
+
+        frame.add(menuLabel);
+        frame.add(registerButton);
+        frame.add(scheduleDonationButton);
+        frame.add(displayDonorsButton);
+        frame.add(displayInventoryButton);
+        frame.add(exitButton);
+
+        registerButton.addActionListener(e -> {
+            frame.dispose();
+            displayRegisterForm();
+        });
+
+        scheduleDonationButton.addActionListener(e -> {
+            frame.dispose();
+            displayScheduleDonation();
+        });
+
+        displayDonorsButton.addActionListener(e -> {
+            frame.dispose();
+            displayDonorList();
+        });
+
+        displayInventoryButton.addActionListener(e -> {
+            frame.dispose();
+            displayBloodInventory();
+        });
+
+        exitButton.addActionListener(e -> System.exit(0));
+
+        frame.setSize(400, 300);
+        frame.setVisible(true);
+    }
+
+    private static void displayRegisterForm() {
+        Frame frame = new Frame("Register Donor");
+
+        frame.setLayout(new GridLayout(10, 2, 10, 10));
+
+        Label nameLabel = new Label("Name:");
+        Label ageLabel = new Label("Age:");
+        Label bloodGroupLabel = new Label("Blood Group:");
+        Label contactLabel = new Label("Contact Number:");
+        Label lastDonationLabel = new Label("Last Donation Date (dd/MM/yyyy):");
+        Label genderLabel = new Label("Gender:");
+        Label dobLabel = new Label("Date of Birth (dd/MM/yyyy):");
+
+        nameField = new TextField();
+        ageField = new TextField();
+        bloodGroupField = new TextField();
+        contactField = new TextField();
+        lastDonationField = new TextField();
+        dobField = new TextField();
+
+        genderGroup = new CheckboxGroup();
+        maleCheckbox = new Checkbox("Male", genderGroup, false);
+        femaleCheckbox = new Checkbox("Female", genderGroup, false);
+
+        Button registerDonorButton = new Button("Register Donor");
+        Button backButton = new Button("Back");
+
+        displayArea = new TextArea();
+
+        frame.add(nameLabel);
+        frame.add(nameField);
+
+        frame.add(ageLabel);
+        frame.add(ageField);
+
+        frame.add(bloodGroupLabel);
+        frame.add(bloodGroupField);
+
+        frame.add(contactLabel);
+        frame.add(contactField);
+
+        frame.add(lastDonationLabel);
+        frame.add(lastDonationField);
+
+        frame.add(genderLabel);
+        Panel genderPanel = new Panel();
+        genderPanel.add(maleCheckbox);
+        genderPanel.add(femaleCheckbox);
+        frame.add(genderPanel);
+
+        frame.add(dobLabel);
+        frame.add(dobField);
+
+        frame.add(registerDonorButton);
+        frame.add(backButton);
+
+        registerDonorButton.addActionListener(e -> registerDonor());
+        backButton.addActionListener(e -> {
+            frame.dispose();
+            displayMainMenu();
+        });
+
+        frame.setSize(600, 500);
+        frame.setVisible(true);
+    }
+
+    private static void registerDonor() {
+        try {
+            String name = nameField.getText();
+            int age = Integer.parseInt(ageField.getText());
+            String bloodGroup = bloodGroupField.getText().toUpperCase();
+            String contactNumber = contactField.getText();
+            String lastDonationDate = lastDonationField.getText();
+            String gender = genderGroup.getSelectedCheckbox() == maleCheckbox ? "Male" : "Female";
+            String dob = dobField.getText();
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            Date lastDonation = sdf.parse(lastDonationDate);
+            Date currentDate = new Date();
+
+            if ((currentDate.getTime() - lastDonation.getTime()) / (1000 * 60 * 60 * 24) < 90) {
+                displayArea.setText("Last donation must be at least 90 days ago.");
+                return;
+            }
+
+            Donor donor = new Donor(name, age, bloodGroup, contactNumber, lastDonationDate, gender, dob);
+            bloodBank.addDonor(donor);
+            displayArea.setText("Donor registered successfully!");
+        } catch (Exception e) {
+            displayArea.setText("Invalid input! Please check all fields.");
+        }
+    }
+
+    private static void displayScheduleDonation() {
+        Frame frame = new Frame("Schedule Donation");
+        frame.setLayout(new GridLayout(2, 1, 10, 10));
+
+        Label infoLabel = new Label("Donation scheduled. Please visit the blood bank.", Label.CENTER);
+        Button backButton = new Button("Back");
+
+        frame.add(infoLabel);
+        frame.add(backButton);
+
+        backButton.addActionListener(e -> {
+            frame.dispose();
+            displayMainMenu();
+        });
+
+        frame.setSize(400, 200);
+        frame.setVisible(true);
+    }
+
+    private static void displayDonorList() {
+        Frame frame = new Frame("Donor List");
+        frame.setLayout(new BorderLayout());
+
+        TextArea donorList = new TextArea();
+        donorList.setEditable(false);
+
+        for (Donor donor : bloodBank.getDonors()) {
+            donorList.append(donor.toString() + "\n");
+        }
+
+        Button backButton = new Button("Back");
+        backButton.addActionListener(e -> {
+            frame.dispose();
+            displayMainMenu();
+        });
+
+        frame.add(donorList, BorderLayout.CENTER);
+        frame.add(backButton, BorderLayout.SOUTH);
+
+        frame.setSize(500, 400);
+        frame.setVisible(true);
+    }
+
+    private static void displayBloodInventory() {
+        Frame frame = new Frame("Blood Inventory");
+        frame.setLayout(new BorderLayout());
+
+        TextArea inventoryList = new TextArea();
+        inventoryList.setEditable(false);
+
+        inventoryList.append("Blood inventory management is not yet implemented.\n");
+
+        Button backButton = new Button("Back");
+        backButton.addActionListener(e -> {
+            frame.dispose();
+            displayMainMenu();
+        });
+
+        frame.add(inventoryList, BorderLayout.CENTER);
+        frame.add(backButton, BorderLayout.SOUTH);
+
+        frame.setSize(400, 300);
+        frame.setVisible(true);
+    }
+}
